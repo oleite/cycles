@@ -30,12 +30,46 @@ HdCyclesDisplayDriver::HdCyclesDisplayDriver(HdCyclesSession *renderParam, Hgi *
 
 HdCyclesDisplayDriver::~HdCyclesDisplayDriver()
 {
+  // Try to enable the GL context on this thread so GL/HGI cleanup is safe.
+  // If we cannot activate the GL context, skip GL calls to avoid crashes
+  const bool haveGlContext = gl_context_enable();
+
+  // Destroy HGI texture while GL context is active if possible.
   if (texture_) {
-    _hgi->DestroyTexture(&texture_);
+    if (_hgi && haveGlContext) {
+      _hgi->DestroyTexture(&texture_);
+      // Reset handle to an empty handle (cannot assign nullptr to HgiHandle).
+      texture_ = HgiTextureHandle();
+    }
+    else if (_hgi) {
+      TF_WARN(
+          "HdCyclesDisplayDriver destructor: cannot activate GL context, skipping Hgi texture "
+          "destruction");
+    }
   }
 
-  if (gl_pbo_id_) {
-    glDeleteBuffers(1, &gl_pbo_id_);
+  if (haveGlContext) {
+    // Delete any outstanding sync objects created with GL.
+    if (gl_upload_sync_) {
+      glDeleteSync((GLsync)gl_upload_sync_);
+      gl_upload_sync_ = nullptr;
+    }
+    if (gl_render_sync_) {
+      glDeleteSync((GLsync)gl_render_sync_);
+      gl_render_sync_ = nullptr;
+    }
+
+    if (gl_pbo_id_) {
+      glDeleteBuffers(1, &gl_pbo_id_);
+      gl_pbo_id_ = 0;
+    }
+
+    // disable the context we enabled above
+    gl_context_disable();
+  }
+  else {
+    TF_WARN(
+        "HdCyclesDisplayDriver destructor: could not activate GL context, skipping GL cleanup");
   }
 
   gl_context_dispose();
