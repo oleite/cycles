@@ -233,7 +233,12 @@ endif()
 # OpenImageIO and image libraries
 ###########################################################################
 
-if(MSVC AND EXISTS ${_cycles_lib_dir})
+if(USD_OVERRIDE_OPENIMAGEIO)
+  # Using OpenImageIO from Houdini, already configured by FindUSDHoudini
+  message(STATUS "Using Houdini's OpenImageIO")
+  set(PUGIXML_INCLUDE_DIR "${OPENIMAGEIO_INCLUDE_DIR}/OpenImageIO/detail/pugixml")
+  set(PUGIXML_LIBRARIES "")
+elseif(MSVC AND EXISTS ${_cycles_lib_dir})
   set(OPENIMAGEIO_INCLUDE_DIR ${OPENIMAGEIO_ROOT_DIR}/include)
   set(OPENIMAGEIO_INCLUDE_DIRS ${OPENIMAGEIO_INCLUDE_DIR} ${OPENIMAGEIO_INCLUDE_DIR}/OpenImageIO)
   # Special exceptions for libraries which needs explicit debug version

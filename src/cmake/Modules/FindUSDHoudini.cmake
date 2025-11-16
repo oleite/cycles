@@ -28,7 +28,7 @@ if(HOUDINI_ROOT AND EXISTS ${HOUDINI_ROOT})
   string(REGEX MATCHALL "[0-9]+" HOUDINI_VERSION_MAJOR ${_houdini_version_major})
 
   # USD
-  set(USD_LIBRARIES hd hgi hgiGL gf arch garch plug tf trace vt work sdf cameraUtil hf pxOsd usd usdImaging usdGeom)
+  set(USD_LIBRARIES python hd hgi hgiGL gf arch garch plug tf trace vt work sdf cameraUtil hf pxOsd usd usdImaging usdGeom)
 
   foreach(lib ${USD_LIBRARIES})
     find_library(_pxr_library NAMES pxr_${lib} PATHS ${_library_dir} NO_DEFAULT_PATH)
@@ -111,7 +111,8 @@ if(HOUDINI_ROOT AND EXISTS ${HOUDINI_ROOT})
   unset(_openvdb_library CACHE)
 
   # TBB
-  find_library(_tbb_library NAMES tbb PATHS ${_library_dir} NO_DEFAULT_PATH)
+  # Houdini 21.0+ uses oneTBB (tbb12), older versions use legacy TBB (tbb)
+  find_library(_tbb_library NAMES tbb12 tbb PATHS ${_library_dir} NO_DEFAULT_PATH)
   set(TBB_INCLUDE_DIRS ${_include_dir})
   set(TBB_LIBRARIES ${_tbb_library})
   set(USD_OVERRIDE_TBB ON)
@@ -123,6 +124,16 @@ if(HOUDINI_ROOT AND EXISTS ${HOUDINI_ROOT})
   set(OPENCOLORIO_LIBRARIES ${_opencolorio_library})
   set(USD_OVERRIDE_OPENCOLORIO ON)
   unset(_opencolorio_library CACHE)
+
+  # OpenImageIO
+  find_library(_openimageio_library NAMES OpenImageIO_sidefx PATHS ${_library_dir} NO_DEFAULT_PATH)
+  find_library(_openimageio_util_library NAMES OpenImageIO_Util_sidefx PATHS ${_library_dir} NO_DEFAULT_PATH)
+  set(OPENIMAGEIO_INCLUDE_DIR ${_include_dir})
+  set(OPENIMAGEIO_INCLUDE_DIRS ${_include_dir} ${_include_dir}/OpenImageIO)
+  set(OPENIMAGEIO_LIBRARIES ${_openimageio_library} ${_openimageio_util_library})
+  set(USD_OVERRIDE_OPENIMAGEIO ON)
+  unset(_openimageio_library CACHE)
+  unset(_openimageio_util_library CACHE)
 
   # Cleanup
   unset(_library_dir)
