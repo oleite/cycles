@@ -1,7 +1,26 @@
 {
-   "env":[
+   "env": [
       {
-         "HOUDINI_PATH":"@CMAKE_INSTALL_PREFIX@/houdini"
+         "CYCLES_ROOT": "@CMAKE_INSTALL_PREFIX@/houdini"
+      },
+      {
+         "CYCLES_ROOT": "${CYCLES_ROOT}"
+      },
+      {
+         "HOUDINI_PATH": [
+            {
+               "value": "$CYCLES_ROOT",
+               "method": "prepend"
+            }
+         ]
+      },
+      {
+         "PATH": [
+            {
+               "value": "$CYCLES_ROOT/dso/usd_plugins",
+               "method": "prepend"
+            }
+         ]
       }
    ]
 }
