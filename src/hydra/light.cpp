@@ -244,6 +244,7 @@ void HdCyclesLight::PopulateShaderGraph(HdSceneDelegate *sceneDelegate)
   const SdfPath &id = GetId();
   bool hasSpatialVarying = false;
   bool hasColorTemperature = false;
+  std::string filename = "";
 
   if (sceneDelegate != nullptr) {
     value = sceneDelegate->GetLightParamValue(id, HdLightTokens->enableColorTemperature);
@@ -272,11 +273,15 @@ void HdCyclesLight::PopulateShaderGraph(HdSceneDelegate *sceneDelegate)
     }
 
     value = sceneDelegate->GetLightParamValue(id, HdLightTokens->shapingIesFile);
+    filename = "";
     if (value.IsHolding<SdfAssetPath>()) {
-      std::string filename = value.UncheckedGet<SdfAssetPath>().GetResolvedPath();
+      filename = value.UncheckedGet<SdfAssetPath>().GetResolvedPath();
       if (filename.empty()) {
         filename = value.UncheckedGet<SdfAssetPath>().GetAssetPath();
       }
+    }
+
+    if (!filename.empty()) {
 
       TextureCoordinateNode *coordNode = graph->create_node<TextureCoordinateNode>();
       coordNode->set_ob_tfm(_object->get_tfm());
@@ -292,11 +297,15 @@ void HdCyclesLight::PopulateShaderGraph(HdSceneDelegate *sceneDelegate)
     }
 
     value = sceneDelegate->GetLightParamValue(id, HdLightTokens->textureFile);
+    filename = "";
     if (value.IsHolding<SdfAssetPath>()) {
-      std::string filename = value.UncheckedGet<SdfAssetPath>().GetResolvedPath();
+      filename = value.UncheckedGet<SdfAssetPath>().GetResolvedPath();
       if (filename.empty()) {
         filename = value.UncheckedGet<SdfAssetPath>().GetAssetPath();
       }
+    }
+
+    if (!filename.empty()) {
 
       ImageSlotTextureNode *textureNode = nullptr;
       if (_lightType == HdPrimTypeTokens->domeLight) {
