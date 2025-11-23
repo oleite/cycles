@@ -212,6 +212,7 @@ void HdCyclesMaterial::Sync(HdSceneDelegate *sceneDelegate,
 
   VtValue value;
   const SdfPath &id = GetId();
+  bool markAsModified = false;
 
   if (dirtyResource || dirtyParams) {
     value = sceneDelegate->GetMaterialResource(id);
@@ -229,7 +230,7 @@ void HdCyclesMaterial::Sync(HdSceneDelegate *sceneDelegate,
         for (const auto &networkEntry : networkOld.map) {
           UpdateParameters(networkEntry.second);
         }
-        _shader->tag_modified();
+        markAsModified = true; 
       }
       else {
         networkConverted = std::make_unique<HdMaterialNetwork2>();
@@ -248,15 +249,17 @@ void HdCyclesMaterial::Sync(HdSceneDelegate *sceneDelegate,
     if (network) {
       if (!_nodes.empty() && !dirtyResource) {
         UpdateParameters(*network);
-        _shader->tag_modified();
+        markAsModified = true;
       }
       else {
         PopulateShaderGraph(*network);
+        markAsModified = true; 
       }
     }
   }
 
-  if (_shader->is_modified()) {
+  if (markAsModified || _shader->is_modified()) {
+    _shader->tag_modified(); 
     _shader->tag_update(lock.scene);
   }
 
