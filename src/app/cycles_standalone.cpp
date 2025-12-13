@@ -442,6 +442,15 @@ static void print_socket_yaml(std::ostream &stream, const SocketType &socket, co
     stream << indent << "  default_value: ";
     stream << value_to_string(socket.default_value, socket.type) << "\n";
   }
+
+  if (socket.type == SocketType::ENUM) {
+    stream << indent << "  enum_items:\n";
+    const NodeEnum *enum_values = socket.enum_values;
+    for (const auto &item : *enum_values) {
+      stream << indent << "    - name: " << item.first.c_str() << "\n";
+      stream << indent << "      value: " << item.second << "\n";
+    }
+  }
 }
 
 static void list_all_node_types_yaml(std::ostream &stream)
