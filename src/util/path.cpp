@@ -351,7 +351,14 @@ string path_get(const string &sub)
 string path_user_get(const string &sub)
 {
   if (cached_user_path.empty()) {
-    cached_user_path = path_dirname(OIIO::Sysutil::this_program_path());
+    char *home_drive = getenv("HOMEDRIVE");
+    char *home_path = getenv("HOMEPATH");
+    if (home_drive != nullptr && home_path != nullptr) {
+      cached_user_path = string(home_drive) + string(home_path);
+    }
+    else {
+      cached_user_path = path_dirname(OIIO::Sysutil::this_program_path());
+    }
   }
 
   return path_join(cached_user_path, sub);
