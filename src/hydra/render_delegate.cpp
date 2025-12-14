@@ -70,7 +70,7 @@ SessionParams GetSessionParams(const HdRenderSettingsMap &settings)
   SessionParams params;
   params.threads = 0;
   params.background = false;
-  params.use_resolution_divider = false;
+  params.use_resolution_divider = true;
 
   HdRenderSettingsMap::const_iterator it;
 

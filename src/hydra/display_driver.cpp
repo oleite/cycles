@@ -157,9 +157,14 @@ void HdCyclesDisplayDriver::gl_context_dispose()
 void HdCyclesDisplayDriver::next_tile_begin() {}
 
 bool HdCyclesDisplayDriver::update_begin(const Params &params,
-                                         int /*texture_width*/,
-                                         int /*texture_height*/)
+                                         int texture_width,
+                                         int texture_height )
 {
+  texture_size_ = CCL_NS::make_int2(texture_width, texture_height);
+  if (texture_size_.x == 0 || texture_size_.y == 0) {
+    texture_size_ = params.size;
+  }
+
   if (!gl_context_enable()) {
     return false;
   }
@@ -168,15 +173,16 @@ bool HdCyclesDisplayDriver::update_begin(const Params &params,
     glWaitSync((GLsync)gl_render_sync_, 0, GL_TIMEOUT_IGNORED);
   }
 
-  if (pbo_size_.x != params.full_size.x || pbo_size_.y != params.full_size.y) {
+  const int2 target_size = texture_size_;
+  if (pbo_size_.x != target_size.x || pbo_size_.y != target_size.y) {
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, gl_pbo_id_);
     glBufferData(GL_PIXEL_UNPACK_BUFFER,
-                 sizeof(half4) * params.full_size.x * params.full_size.y,
+                 sizeof(half4) * target_size.x * target_size.y,
                  nullptr,
                  GL_DYNAMIC_DRAW);
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 
-    pbo_size_ = params.full_size;
+    pbo_size_ = target_size;
     graphics_interop_buffer_.clear();
   }
 
@@ -286,7 +292,7 @@ void HdCyclesDisplayDriver::draw(const Params &params)
 
   const thread_scoped_lock lock(mutex_);
 
-  const GfVec3i dimensions(params.size.x, params.size.y, 1);
+  const GfVec3i dimensions(texture_size_.x, texture_size_.y, 1);
   if (!texture_ || texture_->GetDescriptor().dimensions != dimensions) {
     if (texture_) {
       _hgi->DestroyTexture(&texture_);
@@ -305,7 +311,7 @@ void HdCyclesDisplayDriver::draw(const Params &params)
   }
 
   HgiGLTexture *const texture = dynamic_cast<HgiGLTexture *>(texture_.Get());
-  if (!texture || !need_update_ || pbo_size_.x != params.size.x || pbo_size_.y != params.size.y) {
+  if (!texture || !need_update_ || pbo_size_.x != texture_size_.x || pbo_size_.y != texture_size_.y) {
     return;
   }
 
