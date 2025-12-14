@@ -1105,6 +1105,12 @@ void RenderScheduler::update_start_resolution_divider()
     return;
   }
 
+  /* Always use 240p as the starting resolution for viewport navigation. */
+  start_resolution_divider_ = calculate_resolution_divider_for_resolution(buffer_params_.width,
+                                                                          buffer_params_.height,
+                                                                          240);
+  return;
+
   /* Calculate the maximum resolution divider possible while keeping the long axis of the viewport
    * above our preferred minimum axis size (128). */
   const int long_viewport_axis = max(buffer_params_.width, buffer_params_.height);
