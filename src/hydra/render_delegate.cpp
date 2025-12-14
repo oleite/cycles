@@ -376,6 +376,17 @@ VtDictionary HdCyclesDelegate::GetRenderStats() const
     status += " | " + substatus;
   }
 
+  GfVec2i resolution(0, 0);
+  const HdRenderPassAovBinding &aovBinding = _renderParam->GetDisplayAovBinding();
+  auto *const renderBuffer = static_cast<HdCyclesRenderBuffer *>(aovBinding.renderBuffer);
+  if (renderBuffer) {
+    resolution = GfVec2i(renderBuffer->GetWidth(), renderBuffer->GetHeight());
+  }
+
+  std::string deviceType = Device::string_from_type(_renderParam->session->device->info.type);
+
+  status = TfStringPrintf("%dx%d | %s\n%s", resolution[0], resolution[1], deviceType.c_str(), status.c_str());
+
   return {{"rendererName", VtValue("Cycles")},
           {"rendererVersion", VtValue(GfVec3i(0, 0, 0))},
           {"percentDone", VtValue(floor_to_int(fractionDone * 100))},
